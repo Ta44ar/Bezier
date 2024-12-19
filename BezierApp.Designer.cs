@@ -45,6 +45,7 @@
             p1PointLabel = new Label();
             p2PointLabel = new Label();
             endPointLabel = new Label();
+            customBezierButton = new Button();
             ((System.ComponentModel.ISupportInitialize)pictureBox).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numericUpDownStartX).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numericUpDownStartY).BeginInit();
@@ -80,7 +81,7 @@
             // 
             // drawBezierButton
             // 
-            drawBezierButton.Location = new Point(143, 417);
+            drawBezierButton.Location = new Point(49, 661);
             drawBezierButton.Name = "drawBezierButton";
             drawBezierButton.Size = new Size(142, 49);
             drawBezierButton.TabIndex = 2;
@@ -204,12 +205,23 @@
             endPointLabel.TabIndex = 16;
             endPointLabel.Text = "END:";
             // 
-            // Form1
+            // button1
+            // 
+            customBezierButton.Location = new Point(213, 661);
+            customBezierButton.Name = "customBezierButton";
+            customBezierButton.Size = new Size(142, 49);
+            customBezierButton.TabIndex = 17;
+            customBezierButton.Text = "New Bezier Recipe";
+            customBezierButton.UseVisualStyleBackColor = true;
+            customBezierButton.Click += customBezierButton_Click;
+            // 
+            // BezierApp
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.ControlDark;
             ClientSize = new Size(1324, 744);
+            Controls.Add(customBezierButton);
             Controls.Add(endPointLabel);
             Controls.Add(p2PointLabel);
             Controls.Add(p1PointLabel);
@@ -261,5 +273,6 @@
         private Label p1PointLabel;
         private Label p2PointLabel;
         private Label endPointLabel;
+        private Button customBezierButton;
     }
 }

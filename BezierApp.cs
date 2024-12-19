@@ -1,3 +1,5 @@
+using System.Windows.Forms;
+
 namespace BezierApp
 {
     public partial class BezierApp : Form
@@ -42,6 +44,41 @@ namespace BezierApp
             numericUpDownEndY.Value = maxY / 2;
         }
 
+        private void DrawCustomBezier(Graphics g, Pen pen, Point[] controlPoints)
+        {
+            const int steps = 100;
+            PointF[] bezierPoints = new PointF[steps + 1];
+
+            for (int i = 0; i <= steps; i++)
+            {
+                float t = i / (float)steps;
+                bezierPoints[i] = CalculateBezierPoint(t, controlPoints);
+            }
+
+            g.DrawLines(pen, bezierPoints);
+        }
+
+        private PointF CalculateBezierPoint(float t, Point[] controlPoints)
+        {
+            int n = controlPoints.Length - 1;
+            PointF[] temp = new PointF[n + 1];
+            for (int i = 0; i <= n; i++)
+            {
+                temp[i] = new PointF(controlPoints[i].X, controlPoints[i].Y);
+            }
+
+            for (int r = 1; r <= n; r++)
+            {
+                for (int i = 0; i <= n - r; i++)
+                {
+                    temp[i].X = (1 - t) * temp[i].X + t * temp[i + 1].X;
+                    temp[i].Y = (1 - t) * temp[i].Y + t * temp[i + 1].Y;
+                }
+            }
+
+            return temp[0];
+        }
+
         private void paintBezier(object sender, PaintEventArgs e)
         {
             // Create pen.
@@ -49,19 +86,22 @@ namespace BezierApp
             Pen redPen = new Pen(Color.Red, 7);
 
             // Get points for curve from NumericUpDowns.
-            Point start = new Point((int)numericUpDownStartX.Value, (int)numericUpDownStartY.Value);
-            Point p1 = new Point((int)numericUpDownControlPoint1X.Value, (int)numericUpDownControlPoint1Y.Value);
-            Point p2 = new Point((int)numericUpDownControlPoint2X.Value, (int)numericUpDownControlPoint2Y.Value);
-            Point end = new Point((int)numericUpDownEndX.Value, (int)numericUpDownEndY.Value);
+            Point[] controlPoints =
+            {
+                new Point((int)numericUpDownStartX.Value, (int)numericUpDownStartY.Value),
+                new Point((int)numericUpDownControlPoint1X.Value, (int)numericUpDownControlPoint1Y.Value),
+                new Point((int)numericUpDownControlPoint2X.Value, (int)numericUpDownControlPoint2Y.Value),
+                new Point((int)numericUpDownEndX.Value, (int)numericUpDownEndY.Value)
+            };
 
-            // Draw bezier curve.
-            e.Graphics.DrawBezier(blackPen, start, p1, p2, end);
+            // Draw custom bezier curve.
+            DrawCustomBezier(e.Graphics, blackPen, controlPoints);
 
             // Draw points.
-            DrawPoint(e.Graphics, redPen, start);
-            DrawPoint(e.Graphics, redPen, p1);
-            DrawPoint(e.Graphics, redPen, p2);
-            DrawPoint(e.Graphics, redPen, end);
+            foreach (var point in controlPoints)
+            {
+                DrawPoint(e.Graphics, redPen, point);
+            }
         }
 
         private void DrawPoint(Graphics g, Pen pen, Point point)
@@ -145,6 +185,11 @@ namespace BezierApp
             const int radius = 5;
             return (clickPoint.X >= point.X - radius && clickPoint.X <= point.X + radius &&
                     clickPoint.Y >= point.Y - radius && clickPoint.Y <= point.Y + radius);
+        }
+
+        private void customBezierButton_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
