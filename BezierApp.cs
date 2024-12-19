@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace BezierApp
@@ -6,19 +9,100 @@ namespace BezierApp
     {
         private bool isDragging = false;
         private Point selectedPoint;
-        private string selectedPointName;
+        private int selectedPointIndex;
+        private List<Point> controlPoints = new List<Point>();
 
         public BezierApp()
         {
             InitializeComponent();
-            InitializeNumericUpDowns();
+            InitializeCubicBezier();
             pictureBox.MouseDown += new MouseEventHandler(pictureBox_MouseDown);
             pictureBox.MouseMove += new MouseEventHandler(pictureBox_MouseMove);
             pictureBox.MouseUp += new MouseEventHandler(pictureBox_MouseUp);
-
+            degreeComboBox.SelectedIndexChanged += new EventHandler(comboBoxDegree_SelectedIndexChanged);
         }
 
-        private void InitializeNumericUpDowns()
+        private void comboBoxDegree_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            switch (degreeComboBox.SelectedIndex)
+            {
+                case 0:
+                    InitializeDegree0();
+                    break;
+                case 1:
+                    InitializeDegree1();
+                    break;
+                case 2:
+                    InitializeQuadraticBezier();
+                    break;
+                case 3:
+                    InitializeCubicBezier();
+                    break;
+                case 4:
+                    InitializeDegree4();
+                    break;
+            }
+            pictureBox.Invalidate();
+        }
+
+        private void InitializeDegree0()
+        {
+            pictureBox.AllowDrop = true;
+
+            int maxX = pictureBox.Width;
+            int maxY = pictureBox.Height;
+
+            numericUpDownStartX.Maximum = maxX;
+            numericUpDownStartY.Maximum = maxY;
+
+            controlPoints.Clear();
+            controlPoints.Add(new Point(maxX / 2, maxY / 2)); // Single point
+
+            UpdateNumericUpDowns();
+        }
+
+        private void InitializeDegree1()
+        {
+            pictureBox.AllowDrop = true;
+
+            int maxX = pictureBox.Width;
+            int maxY = pictureBox.Height;
+
+            numericUpDownStartX.Maximum = maxX;
+            numericUpDownStartY.Maximum = maxY;
+            numericUpDownEndX.Maximum = maxX;
+            numericUpDownEndY.Maximum = maxY;
+
+            controlPoints.Clear();
+            controlPoints.Add(new Point(maxX / 4, maxY / 2)); // Start point
+            controlPoints.Add(new Point(3 * maxX / 4, maxY / 2)); // End point
+
+            UpdateNumericUpDowns();
+        }
+
+        private void InitializeQuadraticBezier()
+        {
+            pictureBox.AllowDrop = true;
+
+            int maxX = pictureBox.Width;
+            int maxY = pictureBox.Height;
+
+            numericUpDownStartX.Maximum = maxX;
+            numericUpDownStartY.Maximum = maxY;
+            numericUpDownControlPoint1X.Maximum = maxX;
+            numericUpDownControlPoint1Y.Maximum = maxY;
+            numericUpDownEndX.Maximum = maxX;
+            numericUpDownEndY.Maximum = maxY;
+
+            controlPoints.Clear();
+            controlPoints.Add(new Point(maxX / 4, maxY / 2)); // Start point
+            controlPoints.Add(new Point(maxX / 2, maxY / 4)); // Control point
+            controlPoints.Add(new Point(3 * maxX / 4, maxY / 2)); // End point
+
+            UpdateNumericUpDowns();
+        }
+
+        private void InitializeCubicBezier()
         {
             pictureBox.AllowDrop = true;
 
@@ -34,14 +118,102 @@ namespace BezierApp
             numericUpDownEndX.Maximum = maxX;
             numericUpDownEndY.Maximum = maxY;
 
-            numericUpDownStartX.Value = maxX / 4;
-            numericUpDownStartY.Value = maxY / 2;
-            numericUpDownControlPoint1X.Value = maxX / 2;
-            numericUpDownControlPoint1Y.Value = maxY / 4;
-            numericUpDownControlPoint2X.Value = maxX / 2;
-            numericUpDownControlPoint2Y.Value = 3 * maxY / 4;
-            numericUpDownEndX.Value = 3 * maxX / 4;
-            numericUpDownEndY.Value = maxY / 2;
+            controlPoints.Clear();
+            controlPoints.Add(new Point(maxX / 4, maxY / 2)); // Start point
+            controlPoints.Add(new Point(maxX / 2, maxY / 4)); // Control point 1
+            controlPoints.Add(new Point(maxX / 2, 3 * maxY / 4)); // Control point 2
+            controlPoints.Add(new Point(3 * maxX / 4, maxY / 2)); // End point
+
+            UpdateNumericUpDowns();
+        }
+
+        private void InitializeDegree4()
+        {
+            pictureBox.AllowDrop = true;
+
+            int maxX = pictureBox.Width;
+            int maxY = pictureBox.Height;
+
+            numericUpDownStartX.Maximum = maxX;
+            numericUpDownStartY.Maximum = maxY;
+            numericUpDownControlPoint1X.Maximum = maxX;
+            numericUpDownControlPoint1Y.Maximum = maxY;
+            numericUpDownControlPoint2X.Maximum = maxX;
+            numericUpDownControlPoint2Y.Maximum = maxY;
+            numericUpDownControlPoint3X.Maximum = maxX;
+            numericUpDownControlPoint3Y.Maximum = maxY;
+            numericUpDownEndX.Maximum = maxX;
+            numericUpDownEndY.Maximum = maxY;
+
+            controlPoints.Clear();
+            controlPoints.Add(new Point(maxX / 5, maxY / 2)); // Start point
+            controlPoints.Add(new Point(2 * maxX / 5, maxY / 4)); // Control point 1
+            controlPoints.Add(new Point(3 * maxX / 5, 3 * maxY / 4)); // Control point 2
+            controlPoints.Add(new Point(4 * maxX / 5, maxY / 4)); // Control point 3
+            controlPoints.Add(new Point(4 * maxX / 5, maxY / 2)); // End point
+
+            UpdateNumericUpDowns();
+        }
+
+        private void UpdateNumericUpDowns()
+        {
+            // Default value to indicate uninitialized fields
+            decimal defaultValue = 0;
+
+            if (controlPoints.Count >= 1)
+            {
+                numericUpDownStartX.Value = controlPoints[0].X;
+                numericUpDownStartY.Value = controlPoints[0].Y;
+            }
+            else
+            {
+                numericUpDownStartX.Value = defaultValue;
+                numericUpDownStartY.Value = defaultValue;
+            }
+
+            if (controlPoints.Count >= 2)
+            {
+                numericUpDownControlPoint1X.Value = controlPoints[1].X;
+                numericUpDownControlPoint1Y.Value = controlPoints[1].Y;
+            }
+            else
+            {
+                numericUpDownControlPoint1X.Value = defaultValue;
+                numericUpDownControlPoint1Y.Value = defaultValue;
+            }
+
+            if (controlPoints.Count >= 3)
+            {
+                numericUpDownControlPoint2X.Value = controlPoints[2].X;
+                numericUpDownControlPoint2Y.Value = controlPoints[2].Y;
+            }
+            else
+            {
+                numericUpDownControlPoint2X.Value = defaultValue;
+                numericUpDownControlPoint2Y.Value = defaultValue;
+            }
+
+            if (controlPoints.Count >= 4)
+            {
+                numericUpDownEndX.Value = controlPoints[3].X;
+                numericUpDownEndY.Value = controlPoints[3].Y;
+            }
+            else
+            {
+                numericUpDownEndX.Value = defaultValue;
+                numericUpDownEndY.Value = defaultValue;
+            }
+
+            if (controlPoints.Count >= 5)
+            {
+                numericUpDownControlPoint3X.Value = controlPoints[4].X;
+                numericUpDownControlPoint3Y.Value = controlPoints[4].Y;
+            }
+            else
+            {
+                numericUpDownControlPoint3X.Value = defaultValue;
+                numericUpDownControlPoint3Y.Value = defaultValue;
+            }
         }
 
         private void DrawCustomBezier(Graphics g, Pen pen, Point[] controlPoints)
@@ -85,17 +257,8 @@ namespace BezierApp
             Pen blackPen = new Pen(Color.Black, 2);
             Pen redPen = new Pen(Color.Red, 7);
 
-            // Get points for curve from NumericUpDowns.
-            Point[] controlPoints =
-            {
-                new Point((int)numericUpDownStartX.Value, (int)numericUpDownStartY.Value),
-                new Point((int)numericUpDownControlPoint1X.Value, (int)numericUpDownControlPoint1Y.Value),
-                new Point((int)numericUpDownControlPoint2X.Value, (int)numericUpDownControlPoint2Y.Value),
-                new Point((int)numericUpDownEndX.Value, (int)numericUpDownEndY.Value)
-            };
-
             // Draw custom bezier curve.
-            DrawCustomBezier(e.Graphics, blackPen, controlPoints);
+            DrawCustomBezier(e.Graphics, blackPen, controlPoints.ToArray());
 
             // Draw points.
             foreach (var point in controlPoints)
@@ -112,39 +275,49 @@ namespace BezierApp
 
         private void drawBezier(object sender, EventArgs e)
         {
+            UpdateControlPointsFromNumericUpDowns();
             pictureBox.Invalidate();
+        }
+
+        private void UpdateControlPointsFromNumericUpDowns()
+        {
+            if (controlPoints.Count >= 1)
+            {
+                controlPoints[0] = new Point((int)numericUpDownStartX.Value, (int)numericUpDownStartY.Value);
+            }
+
+            if (controlPoints.Count >= 2)
+            {
+                controlPoints[1] = new Point((int)numericUpDownControlPoint1X.Value, (int)numericUpDownControlPoint1Y.Value);
+            }
+
+            if (controlPoints.Count >= 3)
+            {
+                controlPoints[2] = new Point((int)numericUpDownControlPoint2X.Value, (int)numericUpDownControlPoint2Y.Value);
+            }
+
+            if (controlPoints.Count >= 4)
+            {
+                controlPoints[3] = new Point((int)numericUpDownEndX.Value, (int)numericUpDownEndY.Value);
+            }
+
+            if (controlPoints.Count >= 5)
+            {
+                controlPoints[4] = new Point((int)numericUpDownControlPoint3X.Value, (int)numericUpDownControlPoint3Y.Value);
+            }
         }
 
         private void pictureBox_MouseDown(object sender, MouseEventArgs e)
         {
-            Point start = new Point((int)numericUpDownStartX.Value, (int)numericUpDownStartY.Value);
-            Point p1 = new Point((int)numericUpDownControlPoint1X.Value, (int)numericUpDownControlPoint1Y.Value);
-            Point p2 = new Point((int)numericUpDownControlPoint2X.Value, (int)numericUpDownControlPoint2Y.Value);
-            Point end = new Point((int)numericUpDownEndX.Value, (int)numericUpDownEndY.Value);
-
-            if (IsPointClicked(e.Location, start))
+            for (int i = 0; i < controlPoints.Count; i++)
             {
-                isDragging = true;
-                selectedPoint = start;
-                selectedPointName = "start";
-            }
-            else if (IsPointClicked(e.Location, p1))
-            {
-                isDragging = true;
-                selectedPoint = p1;
-                selectedPointName = "p1";
-            }
-            else if (IsPointClicked(e.Location, p2))
-            {
-                isDragging = true;
-                selectedPoint = p2;
-                selectedPointName = "p2";
-            }
-            else if (IsPointClicked(e.Location, end))
-            {
-                isDragging = true;
-                selectedPoint = end;
-                selectedPointName = "end";
+                if (IsPointClicked(e.Location, controlPoints[i]))
+                {
+                    isDragging = true;
+                    selectedPoint = controlPoints[i];
+                    selectedPointIndex = i;
+                    break;
+                }
             }
         }
 
@@ -152,25 +325,17 @@ namespace BezierApp
         {
             if (isDragging)
             {
-                switch (selectedPointName)
-                {
-                    case "start":
-                        numericUpDownStartX.Value = e.X;
-                        numericUpDownStartY.Value = e.Y;
-                        break;
-                    case "p1":
-                        numericUpDownControlPoint1X.Value = e.X;
-                        numericUpDownControlPoint1Y.Value = e.Y;
-                        break;
-                    case "p2":
-                        numericUpDownControlPoint2X.Value = e.X;
-                        numericUpDownControlPoint2Y.Value = e.Y;
-                        break;
-                    case "end":
-                        numericUpDownEndX.Value = e.X;
-                        numericUpDownEndY.Value = e.Y;
-                        break;
-                }
+                int newX = e.X;
+                int newY = e.Y;
+
+                // wymuszony drop przed granic¹ pictureBox
+                if (newX < 3) newX = 3;
+                if (newX > pictureBox.Width - 3) newX = pictureBox.Width - 3;
+                if (newY < 3) newY = 3;
+                if (newY > pictureBox.Height - 3) newY = pictureBox.Height - 3;
+
+                controlPoints[selectedPointIndex] = new Point(newX, newY);
+                UpdateNumericUpDowns();
                 pictureBox.Invalidate();
             }
         }
@@ -187,9 +352,6 @@ namespace BezierApp
                     clickPoint.Y >= point.Y - radius && clickPoint.Y <= point.Y + radius);
         }
 
-        private void customBezierButton_Click(object sender, EventArgs e)
-        {
 
-        }
     }
 }
